@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>DATA LUUK - Dashboard</title>
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; font-family: Arial, sans-serif; background: #f1f5f9; color: #111827; }
+header { background: #111827; color: white; padding: 18px 12px; text-align: center; font-size: 25px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+header span { font-size: 13px; font-weight: normal; background: #334155; padding: 5px 10px; border-radius: 6px; }
+nav { display: flex; overflow-x: auto; background: white; border-bottom: 1px solid #ddd; }
+nav button { flex: 0 0 auto; border: 0; background: white; padding: 15px 18px; font-size: 16px; font-weight: bold; cursor: pointer; }
+nav button.active { background: #111827; color: white; }
+main { padding: 12px; max-width: 800px; margin: auto; }
+.blok { background: white; border-radius: 14px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 7px rgba(0,0,0,.08); text-align: center; }
+.blok-links { text-align: left; }
+h2, h3 { margin-top: 0; }
+label { display: block; margin-top: 12px; font-weight: bold; text-align: left; }
+input, select, textarea { width: 100%; padding: 13px; margin-top: 5px; border: 1px solid #cbd5e1; border-radius: 9px; font-size: 17px; background: white; text-align: left; }
+button { border: 0; border-radius: 9px; padding: 13px 16px; font-size: 16px; font-weight: bold; cursor: pointer; }
+.opslaan { width: 100%; margin-top: 18px; background: #16a34a; color: white; }
+.secundair { background: #64748b; color: white; margin-top: 8px; width: 100%; }
+.gevaar { background: #dc2626; color: white; padding: 8px 12px; font-size: 14px; }
+.bewerk { background: #f59e0b; color: white; }
+.tijdKnopContainer { display: flex; gap: 8px; margin-top: 5px; }
+.tijdKnopContainer input { flex: 1; margin-top: 0; }
+.tijdKnopContainer button { flex: 0 0 100px; background: #2563eb; color: white; margin-top: 0; padding: 0; font-size: 14px; }
+.kaart { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center; text-align: left; }
+.item-kaart { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; margin-top: 10px; text-align: left; }
+.klikbaar { cursor: pointer; transition: background-color 0.2s ease, border-color 0.2s ease; }
+.klikbaar:hover { background-color: #f1f5f9; border-color: #94a3b8; }
+.acties { display: flex; gap: 7px; margin-top: 10px; }
+.acties button { flex: 1; }
+
+.meting-rij { display: flex; gap: 6px; margin-top: 6px; align-items: center; }
+.meting-rij input { margin-top: 0; }
+
+.badge-groen { background: #22c55e; color: white; padding: 3px 8px; border-radius: 6px; font-weight: bold; display: inline-block; }
+.badge-oranje { background: #f97316; color: white; padding: 3px 8px; border-radius: 6px; font-weight: bold; display: inline-block; }
+.badge-rood { background: #dc2626; color: white; padding: 3px 8px; border-radius: 6px; font-weight: bold; display: inline-block; }
+
+.mensContainer { width: 120px; height: 220px; margin: 15px auto; position: relative; border: 3px solid #334155; border-radius: 60px 60px 20px 20px; overflow: hidden; background: #e2e8f0; display: flex; align-items: flex-end; }
+.mensVulling { width: 100%; height: 0%; background: #22c55e; transition: height 0.5s ease, background-color 0.5s ease; }
+.mensHoofd { width: 50px; height: 50px; border: 3px solid #334155; border-radius: 50%; background: #e2e8f0; position: absolute; top: -30px; left: 32px; }
+
+.grootGetal { font-size: 32px; font-weight: bold; margin: 5px; }
+
+.timerContainer { display: flex; gap: 10px; margin-top: 12px; }
+.timerBox { flex: 1; background: #0f172a; color: #38bdf8; padding: 10px; border-radius: 10px; text-align: center; font-family: monospace; font-size: 24px; font-weight: bold; }
+.timerBox small { display: block; font-size: 11px; color: #94a3b8; margin-bottom: 2px; }
+
+.grafiek-Container { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+.grafiek-balk-rij { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+.grafiek-label { width: 90px; text-align: right; font-weight: bold; font-size: 13px; }
+.grafiek-balk-bg { flex: 1; background: #e2e8f0; border-radius: 6px; height: 22px; position: relative; overflow: hidden; }
+.grafiek-balk-fill { height: 100%; background: #2563eb; border-radius: 6px; transition: width 0.4s ease; }
+.grafiek-waarde { width: 60px; font-weight: bold; font-size: 13px; text-align: left; }
+
+.hidden { display: none; }
+.melding { position: fixed; left: 10px; right: 10px; bottom: 15px; background: #111827; color: white; padding: 15px; border-radius: 10px; text-align: center; display: none; z-index: 1000; }
+.small { color: #64748b; font-size: 14px; }
+
+@media print {
+  body { background: white; color: black; }
+  header, nav, button, .acties, .gevaar, .bewerk, .secundair, .opslaan { display: none !important; }
+  main { max-width: 100% !important; padding: 0 !important; }
+  .blok { box-shadow: none !important; border: 1px solid #cbd5e1; page-break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCHERM -->
+<div id="loginOverlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#0f172a; display:flex; justify-content:center; align-items:center; z-index:9999;">
+  <div style="background:white; padding:30px; border-radius:15px; width:90%; max-width:400px; text-align:center; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+    <h2>🔐 DATA LUUK LOGIN</h2>
+    <p class="small">Vul je gegevens in om door te gaan.</p>
+    <label style="text-align:left;">Gebruikersnaam</label>
+    <input type="text" id="loginUser" placeholder="bijv. admin of gast">
+    <label style="text-align:left;">Wachtwoord</label>
+    <input type="password" id="loginPass" placeholder="Wachtwoord">
+    <button class="opslaan" onclick="voerLoginUit()">Inloggen</button>
+    <div id="loginFout" style="color:#dc2626; margin-top:10px; font-weight:bold;"></div>
+  </div>
+</div>
+
+<header>
+  DATA LUUK
+  <span id="gebruikerBadge">Niet ingelogd</span>
+</header>
+
+<nav>
+  <button onclick="toonPagina('dashboard')" id="nav-dashboard" class="active">📊 Dashboard</button>
+  <button onclick="toonPagina('vocht')" id="nav-vocht">💧 Vocht</button>
+  <button onclick="toonPagina('taxi')" id="nav-taxi">🚕 Taxi</button>
+  <button onclick="toonPagina('dialyse')" id="nav-dialyse">🩺 Dialyse</button>
+  <button onclick="toonPagina('rapport')" id="nav-rapport">📄 Rapporten & PDF</button>
+  <button onclick="toonPagina('feiten')" id="nav-feiten">⚙️ Instellingen</button>
+</nav>
+
+<main>
+  <!-- DASHBOARD PAGINA -->
+  <section id="pagina-dashboard">
+    <div class="blok">
+      <h2>🏠 Vandaag Overzicht</h2>
+      <div style="position: relative; margin-top: 40px;">
+        <div class="mensHoofd"></div>
+        <div class="mensContainer">
+          <div id="mensVullingBar" class="mensVulling"></div>
+        </div>
+      </div>
+      <div class="grootGetal"><span id="dashVochtTotaal">0</span> ml</div>
+      <p class="small">Vochtlimiet: <span id="dashVochtLimiet">1000</span> ml</p>
+    </div>
+
+    <div class="blok blok-links">
+      <h3>🚕 Taxi's Vandaag</h3>
+      <div id="dashTaxiLijst">Laden...</div>
+    </div>
+
+    <div class="blok blok-links">
+      <h3>🩺 Dialyse Vandaag</h3>
+      <div id="dashDialyseLijst">Laden...</div>
+    </div>
+  </section>
+
+  <!-- VOCHT PAGINA -->
+  <section id="pagina-vocht" class="hidden">
+    <div class="blok blok-links al-element">
+      <h2>💧 Vochtregistratie</h2>
+      <label>Datum en tijd</label>
+      <input type="datetime-local" id="vochtDatumTijd">
+      <label>Soort</label>
+      <select id="vochtSoort"></select>
+      <label>Hoeveelheid ml</label>
+      <input type="number" id="vochtHoeveelheid" inputmode="numeric" placeholder="bijv. 150">
+      <label>Opmerking</label>
+      <input id="vochtOpmerking" placeholder="optioneel">
+      <button class="opslaan" id="vochtOpslaan" onclick="slaVochtOp()">Vocht opslaan</button>
+      <button class="secundair hidden" id="vochtAnnuleer" onclick="annuleerVocht()">Annuleren</button>
+    </div>
+    <div class="blok blok-links">
+      <h3>Vandaag</h3>
+      <div id="vochtLijst">Laden...</div>
+    </div>
+  </section>
+
+  <!-- TAXI PAGINA -->
+  <section id="pagina-taxi" class="hidden">
+    <div class="blok blok-links al-element">
+      <h2>🚕 Taxiplanning</h2>
+      <label>Afspraak datum en tijd</label>
+      <input type="datetime-local" id="taxiDatumTijd">
+      <label>Herhaling</label>
+      <select id="taxiHerhaling" onchange="toggleEinddatum('taxi')">
+        <option value="Eenmalig op datum">Eenmalig op datum</option>
+        <option value="Elke dag">Elke dag</option>
+        <option value="Om de dag">Om de dag</option>
+        <option value="Ma, wo, vrij">Ma, wo, vrij</option>
+        <option value="Di, do, za">Di, do, za</option>
+        <option value="Elke maand">Elke maand (zelfde dag v.d. maand)</option>
+      </select>
+      <div id="taxiEinddatumContainer" class="hidden">
+        <label>Einddatum herhaling</label>
+        <input type="date" id="taxiEinddatum">
+      </div>
+      <label>Bestemming</label>
+      <select id="taxiBestemmingSelect"></select>
+      <label>Taxibedrijf</label>
+      <select id="taxiBedrijfSelect"></select>
+      <label>Start tijd</label>
+      <div class="tijdKnopContainer">
+        <input type="time" id="taxiStart" onchange="bepaalAutomatischeStatusTaxi()">
+        <button type="button" onclick="vulHuidigeTijd('taxiStart'); bepaalAutomatischeStatusTaxi();">Start nu</button>
+      </div>
+      <label>Stop tijd</label>
+      <div class="tijdKnopContainer">
+        <input type="time" id="taxiStop" onchange="bepaalAutomatischeStatusTaxi()">
+        <button type="button" onclick="vulHuidigeTijd('taxiStop'); bepaalAutomatischeStatusTaxi();">Stop nu</button>
+      </div>
+      <label>Status (Automatisch)</label>
+      <select id="taxiStatus" disabled style="background: #e2e8f0; font-weight: bold;">
+        <option value="Leeg">Leeg</option>
+        <option value="Bezig">Bezig</option>
+        <option value="Gereed">Gereed</option>
+      </select>
+      <label>Opmerking</label>
+      <input id="taxiOpmerking" placeholder="bijv. Rolstoel / bijzonderheden">
+      <button class="opslaan" id="taxiOpslaan" onclick="slaTaxiOp()">Taxi planning opslaan</button>
+      <button class="secundair hidden" id="taxiAnnuleer" onclick="annuleerTaxi()">Annuleren</button>
+    </div>
+    <div class="blok blok-links">
+      <h3>Geplande Taxiritten</h3>
+      <div id="taxiLijst">Laden...</div>
+    </div>
+  </section>
+
+  <!-- DIALYSE PAGINA -->
+  <section id="pagina-dialyse" class="hidden">
+    <div class="blok blok-links al-element">
+      <h2>🩺 Dialyse Planning & Behandeling</h2>
+      
+      <label>Type Dialyse</label>
+      <select id="dialyseType" onchange="berekenUfAdvies()" style="font-weight: bold;">
+        <option value="Dag">Dag dialyse (Factor 0,6)</option>
+        <option value="Nacht">Nacht dialyse (Factor 0,3)</option>
+      </select>
+
+      <label>Afspraak Datum en Tijd</label>
+      <input type="datetime-local" id="dialyseAfspraakTijd" onchange="syncAfspraakNaarStart()">
+
+      <label>Start Datum en Tijd (Automatisch gelijk aan afspraak, handmatig aanpasbaar)</label>
+      <input type="datetime-local" id="dialyseStartTijd" onchange="zetStandaardStoptijd()">
+
+      <label>Stop Datum en Tijd (Standaard volgende dag 05:30)</label>
+      <input type="datetime-local" id="dialyseStopTijd" onchange="updateDubbeleKlok()">
+
+      <label>Herhaling</label>
+      <select id="dialyseHerhaling" onchange="toggleEinddatum('dialyse')">
+        <option value="Eenmalig op datum">Eenmalig op datum</option>
+        <option value="Elke dag">Elke dag</option>
+        <option value="Om de dag">Om de dag</option>
+        <option value="Ma, wo, vrij">Ma, wo, vrij</option>
+        <option value="Di, do, za">Di, do, za</option>
+        <option value="Elke maand">Elke maand (zelfde dag v.d. maand)</option>
+      </select>
+      <div id="dialyseEinddatumContainer" class="hidden">
+        <label>Einddatum herhaling</label>
+        <input type="date" id="dialyseEinddatum">
+      </div>
+
+      <!-- Actie Knoppen voor Start & Stop -->
+      <div style="display: flex; gap: 10px; margin-top: 15px;">
+        <button type="button" class="opslaan" style="margin-top: 0; background: #2563eb;" onclick="startDialyseSessie()">▶️ Start Dialyse</button>
+        <button type="button" class="opslaan" style="margin-top: 0; background: #dc2626;" onclick="stopDialyseSessie()">⏹️ Stop Dialyse</button>
+      </div>
+
+      <!-- Enkele Countdown Klok -->
+      <div id="dialyseTimerBox" class="timerContainer hidden">
+        <div class="timerBox" id="countdownBox">
+          <small>⏱️ COUNTDOWN KLOK</small>
+          <span id="dialyseCountdownTijd">--:--:--</span>
+        </div>
+      </div>
+
+      <label>Status</label>
+      <select id="dialyseStatus" style="font-weight: bold;" disabled style="background: #e2e8f0;">
+        <option value="Open">Open</option>
+        <option value="Bezig">Bezig</option>
+        <option value="Gereed">Gereed</option>
+      </select>
+
+      <label>Pre-gewicht (kg)</label>
+      <input type="number" step="0.1" id="dialysePreGewicht" inputmode="decimal" placeholder="bijv. 112.5" oninput="berekenUfAdvies()">
+
+      <label>Post-gewicht (kg)</label>
+      <input type="number" step="0.1" id="dialysePostGewicht" inputmode="decimal" placeholder="bijv. 109.0">
+
+      <div class="item-kaart" style="margin-top: 15px; background: #fff; text-align: center;">
+        <div class="small" id="dialyseUfLabel">Berekend UF Advies:</div>
+        <div id="dialyseUfResultaat" class="grootGetal">0.0 L</div>
+        <div id="dialyseUfBadge" class="badge-groen">Groen (< 4.0 L)</div>
+      </div>
+
+      <label style="margin-top: 20px;">Bloeddruk & Hartslag metingen (Meerdere per behandeling)</label>
+      <div id="metingenContainer"></div>
+      <button type="button" class="secundair" style="margin-top: 8px; background: #2563eb;" onclick="voegMetingRijtoe()">+ Bloeddruk meting toevoegen</button>
+
+      <label>Opmerking</label>
+      <input id="dialyseOpmerking" placeholder="bijv. Bijzonderheden tijdens dialyse">
+
+      <button class="opslaan" id="dialyseOpslaan" onclick="slaDialyseOp()">Dialyse planning opslaan</button>
+      <button class="secundair hidden" id="dialyseAnnuleer" onclick="annuleerDialyse()">Annuleren</button>
+    </div>
+
+    <div class="blok blok-links">
+      <h3>Dialyse Behandelingen & Planningen</h3>
+      <div id="dialyseLijst">Laden...</div>
+    </div>
+  </section>
+
+  <!-- RAPPORTEN & PRINT PAGINA -->
+  <section id="pagina-rapport" class="hidden">
+    <div class="blok blok-links">
+      <h2>📄 Rapportages, Grafieken & PDF</h2>
+      <label>Selecteer periode</label>
+      <select id="rapportPeriode" onchange="toggleAangepasteDatums()">
+        <option value="vandaag">Vandaag</option>
+        <option value="week" selected>Deze week</option>
+        <option value="maand">Deze maand</option>
+        <option value="aangepast">Aangepaste datums</option>
+      </select>
+
+      <div id="aangepastDatumContainer" class="hidden">
+        <label>Startdatum</label>
+        <input type="date" id="rapportStartDatum">
+        <label>Einddatum</label>
+        <input type="date" id="rapportEindDatum">
+      </div>
+
+      <button class="opslaan" style="background: #2563eb;" onclick="genereerRapport()">Genereer Rapport & Grafieken</button>
+      <button class="opslaan" style="background: #0f172a; margin-top: 8px;" onclick="window.print()">🖨️ Print / Opslaan als PDF</button>
+    </div>
+
+    <div id="rapportResultaatContainer" class="hidden">
+      <!-- Vocht Rapport & Grafiek -->
+      <div class="blok blok-links">
+        <h3>💧 Vocht Overzicht & Grafiek</h3>
+        <div id="rapportVochtGrafiek" class="grafiek-Container"></div>
+        <div id="rapportVochtLijst" style="margin-top: 15px;"></div>
+      </div>
+
+      <!-- Taxi Rapport -->
+      <div class="blok blok-links">
+        <h3>🚕 Taxiritten Overzicht</h3>
+        <div id="rapportTaxiLijst"></div>
+      </div>
+
+      <!-- Dialyse Rapport & Grafiek -->
+      <div class="blok blok-links">
+        <h3>🩺 Dialyse & Ultrafiltratie (UF) Grafiek</h3>
+        <div id="rapportDialyseGrafiek" class="grafiek-Container"></div>
+        <div id="rapportDialyseLijst" style="margin-top: 15px;"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- VASTE FEITEN & BEHEER -->
+  <section id="pagina-feiten" class="hidden">
+    <div class="blok blok-links al-element">
+      <h2>⚙️ Vaste feiten</h2>
+      <label>Vochtlimiet (ml)</label>
+      <input type="number" id="limietInput" placeholder="1000">
+      <button class="opslaan" onclick="slaLimietOp()">Limiet opslaan</button>
+
+      <label style="margin-top: 20px;">Drooggewicht (kg)</label>
+      <input type="number" step="0.1" id="droogGewichtInstelling" placeholder="109">
+      <button class="opslaan" onclick="slaDroogGewichtOp()">Drooggewicht opslaan</button>
+    </div>
+    <div class="blok blok-links">
+      <h2>🥤 Dranken beheren</h2>
+      <div class="al-element">
+        <label>Nieuwe dranksoort toevoegen</label>
+        <input type="text" id="nieuweDrankInput" placeholder="bijv. Soep, Melk">
+        <button class="opslaan" onclick="voegFeitToe('Drank', 'nieuweDrankInput', 'Drank toegevoegd.')">Drank toevoegen</button>
+      </div>
+      <div id="drankenLijst" style="margin-top: 15px;">Laden...</div>
+    </div>
+    <div class="blok blok-links">
+      <h2>🚕 Taxibedrijven beheren</h2>
+      <div class="al-element">
+        <label>Nieuw taxibedrijf toevoegen</label>
+        <input type="text" id="nieuwBedrijfInput" placeholder="bijv. Connexxion">
+        <button class="opslaan" onclick="voegFeitToe('Taxibedrijf', 'nieuwBedrijfInput', 'Taxibedrijf toegevoegd.')">Bedrijf toevoegen</button>
+      </div>
+      <div id="bedrijvenLijst" style="margin-top: 15px;">Laden...</div>
+    </div>
+    <div class="blok blok-links">
+      <h2>📍 Bestemmingen beheren</h2>
+      <div class="al-element">
+        <label>Nieuwe bestemming toevoegen</label>
+        <input type="text" id="nieuweBestemmingInput" placeholder="bijv. Ziekenhuis">
+        <button class="opslaan" onclick="voegFeitToe('Bestemming', 'nieuweBestemmingInput', 'Bestemming toegevoegd.')">Bestemming toevoegen</button>
+      </div>
+      <div id="bestemmingenLijst" style="margin-top: 15px;">Laden...</div>
+    </div>
+  </section>
+</main>
+
+<div id="melding" class="melding"></div>
+
+<script>
+let alleData = {};
+let editVochtId = null;
+let editTaxiId = null;
+let editDialyseId = null;
+let dialyseTimerInterval = null;
+let globaalDroogGewicht = 109;
+let huidigeRol = "admin"; // Standaard admin tot login
+
+function voerLoginUit() {
+  const gb = document.getElementById("loginUser").value;
+  const ww = document.getElementById("loginPass").value;
+
+  google.script.run
+    .withSuccessHandler(res => {
+      if (res.succes) {
+        huidigeRol = res.rol;
+        document.getElementById("gebruikerBadge").textContent = res.naam;
+        document.getElementById("loginOverlay").style.display = "none";
+        pasRechtenToe();
+        initFormulieren();
+        laadAlles();
+      } else {
+        document.getElementById("loginFout").textContent = res.fout;
+      }
+    })
+    .withFailureHandler(fout)
+    .login(gb, ww);
+}
+
+function pasRechtenToe() {
+  if (huidigeRol === "kijker") {
+    // Verberg of schakel alle invoerelementen en opslaan/verwijderknoppen uit voor gasten
+    document.querySelectorAll(".al-element").forEach(el => {
+      el.style.display = "none";
+    });
+  }
+}
+
+window.onload = function() {
+  // Wacht op inloggen via het overlay scherm
+};
+
+function toonPagina(naam) {
+  document.querySelectorAll("main > section").forEach(s => s.classList.add("hidden"));
+  document.getElementById("pagina-" + naam).classList.remove("hidden");
+  document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
+  document.getElementById("nav-" + naam).classList.add("active");
+  if (naam === 'dialyse') {
+    updateDubbeleKlok();
+  }
+}
+
+function initFormulieren() {
+  const d = new Date();
+  const jaar = d.getFullYear();
+  const maand = String(d.getMonth() + 1).padStart(2, '0');
+  const dag = String(d.getDate()).padStart(2, '0');
+  const uur = String(d.getHours()).padStart(2, '0');
+  const minuut = String(d.getMinutes()).padStart(2, '0');
+  
+  document.getElementById("vochtDatumTijd").value = `${jaar}-${maand}-${dag}T${uur}:${minuut}`;
+  document.getElementById("taxiDatumTijd").value = `${jaar}-${maand}-${dag}T${uur}:${minuut}`;
+  document.getElementById("taxiEinddatum").value = `${jaar}-${maand}-${dag}`;
+  
+  document.getElementById("dialyseAfspraakTijd").value = `${jaar}-${maand}-${dag}T${uur}:${minuut}`;
+  document.getElementById("dialyseStartTijd").value = `${jaar}-${maand}-${dag}T${uur}:${minuut}`;
+  document.getElementById("dialyseEinddatum").value = `${jaar}-${maand}-${dag}`;
+  zetStandaardStoptijd();
+
+  document.getElementById("rapportStartDatum").value = `${jaar}-${maand}-${dag}`;
+  document.getElementById("rapportEindDatum").value = `${jaar}-${maand}-${dag}`;
+
+  if (document.getElementById("metingenContainer").children.length === 0) {
+    voegMetingRijtoe();
+  }
+  bepaalAutomatischeStatusTaxi();
+  berekenUfAdvies();
+}
+
+function syncAfspraakNaarStart() {
+  const afspraakVal = document.getElementById("dialyseAfspraakTijd").value;
+  if (!afspraakVal) return;
+  document.getElementById("dialyseStartTijd").value = afspraakVal;
+  zetStandaardStoptijd();
+}
+
+function zetStandaardStoptijd() {
+  const startVal = document.getElementById("dialyseStartTijd").value;
+  if (!startVal) return;
+  const startDate = new Date(startVal);
+  startDate.setDate(startDate.getDate() + 1);
+  const jaar = startDate.getFullYear();
+  const maand = String(startDate.getMonth() + 1).padStart(2, '0');
+  const dag = String(startDate.getDate()).padStart(2, '0');
+  document.getElementById("dialyseStopTijd").value = `${jaar}-${maand}-${dag}T05:30`;
+  updateDubbeleKlok();
+}
+
+function toggleEinddatum(soort) {
+  const herhaling = document.getElementById(soort + "Herhaling").value;
+  const container = document.getElementById(soort + "EinddatumContainer");
+  if (herhaling === "Eenmalig op datum") {
+    container.classList.add("hidden");
+  } else {
+    container.classList.remove("hidden");
+  }
+}
+
+function toggleAangepasteDatums() {
+  const periode = document.getElementById("rapportPeriode").value;
+  const container = document.getElementById("aangepastDatumContainer");
+  if (periode === "aangepast") {
+    container.classList.remove("hidden");
+  } else {
+    container.classList.add("hidden");
+  }
+}
+
+function vulHuidigeTijd(elementId) {
+  const d = new Date();
+  const uur = String(d.getHours()).padStart(2, '0');
+  const minuut = String(d.getMinutes()).padStart(2, '0');
+  document.getElementById(elementId).value = `${uur}:${minuut}`;
+}
+
+function bepaalAutomatischeStatusTaxi() {
+  const start = document.getElementById("taxiStart").value;
+  const stop = document.getElementById("taxiStop").value;
+  const statusSelect = document.getElementById("taxiStatus");
+
+  if (stop) {
+    statusSelect.value = "Gereed";
+  } else if (start) {
+    statusSelect.value = "Bezig";
+  } else {
+    statusSelect.value = "Leeg";
+  }
+}
+
+function startDialyseSessie() {
+  if (huidigeRol === "kijker") return;
+  const d = new Date();
+  const jaar = d.getFullYear();
+  const maand = String(d.getMonth() + 1).padStart(2, '0');
+  const dag = String(d.getDate()).padStart(2, '0');
+  const uur = String(d.getHours()).padStart(2, '0');
+  const minuut = String(d.getMinutes()).padStart(2, '0');
+
+  document.getElementById("dialyseStartTijd").value = `${jaar}-${maand}-${dag}T${uur}:${minuut}`;
+  zetStandaardStoptijd();
+  document.getElementById("dialyseStatus").value = "Bezig";
+  
+  document.getElementById("dialyseTimerBox").classList.remove("hidden");
+  if (dialyseTimerInterval) clearInterval(dialyseTimerInterval);
+  dialyseTimerInterval = setInterval(updateDialyseTimer, 1000);
+  updateDialyseTimer();
+  melding("Dialyse gestart!");
+}
+
+function stopDialyseSessie() {
+  if (huidigeRol === "kijker") return;
+  const d = new Date();
+  const jaar = d.getFullYear();
+  const maand = String(d.getMonth() + 1).padStart(2, '0');
+  const dag = String(d.getDate()).padStart(2, '0');
+  const uur = String(d.getHours()).padStart(2, '0');
+  const minuut = String(d.getMinutes()).padStart(2, '0');
+
+  document.getElementById("dialyseStopTijd").value = `${jaar}-${maand}-${dag}T${uur}:${minuut}`;
+  document.getElementById("dialyseStatus").value = "Gereed";
+  updateDubbeleKlok();
+
+  if (dialyseTimerInterval) {
+    clearInterval(dialyseTimerInterval);
+    dialyseTimerInterval = null;
+  }
+  melding("Dialyse gestopt (Gereed).");
+}
+
+function updateDialyseTimer() {
+  const startVal = document.getElementById("dialyseStartTijd").value;
+  const stopVal = document.getElementById("dialyseStopTijd").value;
+  if (!startVal || !stopVal) return;
+
+  const startMs = new Date(startVal).getTime();
+  const stopMs = new Date(stopVal).getTime();
+  const nuMs = new Date().getTime();
+
+  const totaalDuurSec = Math.floor((stopMs - startMs) / 1000);
+  let resterendSec = Math.floor((stopMs - nuMs) / 1000);
+
+  if (document.getElementById("dialyseStatus").value === "Gereed") {
+    resterendSec = 0;
+  }
+  if (resterendSec < 0) resterendSec = 0;
+  if (resterendSec > totaalDuurSec && totaalDuurSec > 0) resterendSec = totaalDuurSec;
+
+  const uren = String(Math.floor(resterendSec / 3600)).padStart(2, '0');
+  const minuten = String(Math.floor((resterendSec % 3600) / 60)).padStart(2, '0');
+  const seconden = String(resterendSec % 60).padStart(2, '0');
+  document.getElementById("dialyseCountdownTijd").textContent = `${uren}:${minuten}:${seconden}`;
+
+  let fractie = totaalDuurSec > 0 ? Math.min(1, Math.max(0, resterendSec / totaalDuurSec)) : 0;
+  const hue = 60 + (fractie * 60);
+  document.getElementById("countdownBox").style.backgroundColor = `hsl(${hue}, 70%, 25%)`;
+}
+
+function updateDubbeleKlok() {
+  const startVal = document.getElementById("dialyseStartTijd").value;
+  const stopVal = document.getElementById("dialyseStopTijd").value;
+  if (startVal && stopVal) {
+    document.getElementById("dialyseTimerBox").classList.remove("hidden");
+    updateDialyseTimer();
+    if (!dialyseTimerInterval) {
+      dialyseTimerInterval = setInterval(updateDialyseTimer, 1000);
+    }
+  }
+}
+
+function berekenUfAdvies() {
+  const preGewicht = parseFloat(document.getElementById("dialysePreGewicht").value) || 0;
+  const type = document.getElementById("dialyseType").value;
+  const factor = (type === "Dag") ? 0.6 : 0.3;
+  
+  let uf = preGewicht > 0 ? (preGewicht - globaalDroogGewicht + factor) : 0;
+  if (uf < 0) uf = 0;
+
+  document.getElementById("dialyseUfResultaat").textContent = uf.toFixed(1) + " L";
+  document.getElementById("dialyseUfLabel").textContent = `Berekend UF Advies (Pre - ${globaalDroogGewicht} + ${factor} [${type}]):`;
+  
+  const badge = document.getElementById("dialyseUfBadge");
+  if (uf >= 4.5) {
+    badge.className = "badge-rood";
+    badge.textContent = "Rood (>= 4.5 L)";
+  } else if (uf >= 4.0) {
+    badge.className = "badge-oranje";
+    badge.textContent = "Oranje (>= 4.0 L)";
+  } else {
+    badge.className = "badge-groen";
+    badge.textContent = "Groen (< 4.0 L)";
+  }
+}
+
+function voegMetingRijtoe(sys = "", dia = "", hr = "") {
+  if (huidigeRol === "kijker") return;
+  const container = document.getElementById("metingenContainer");
+  const div = document.createElement("div");
+  div.className = "meting-rij";
+  div.innerHTML = `
+    <input type="number" placeholder="Sys" value="${sys}" style="width: 32%;" inputmode="numeric">
+    <span style="font-weight: bold;">/</span>
+    <input type="number" placeholder="Dia" value="${dia}" style="width: 32%;" inputmode="numeric">
+    <input type="number" placeholder="Pols" value="${hr}" style="width: 32%;" inputmode="numeric">
+    <button type="button" class="gevaar" style="padding: 10px;" onclick="this.parentElement.remove()">✕</button>
+  `;
+  container.appendChild(div);
+}
+
+function verzamelMetingen() {
+  const rijen = document.querySelectorAll("#metingenContainer .meting-rij");
+  let metingen = [];
+  rijen.forEach(r => {
+    const inputs = r.querySelectorAll("input");
+    const sys = inputs[0].value.trim();
+    const dia = inputs[1].value.trim();
+    const hr = inputs[2].value.trim();
+    if (sys || dia || hr) {
+      metingen.push(`${sys || '?'}/${dia || '?'}, ${hr || '?'} bpm`);
+    }
+  });
+  return metingen.join(" | ");
+}
+
+function melding(tekst) {
+  const el = document.getElementById("melding");
+  el.textContent = tekst;
+  el.style.display = "block";
+  setTimeout(() => { el.style.display = "none"; }, 2500);
+}
+
+function fout(error) {
+  console.error(error);
+  melding("Fout: " + (error.message || error));
+}
+
+function laadAlles() {
+  google.script.run
+    .withSuccessHandler(data => {
+      alleData = data || {};
+      verwerkDashboardEnVocht();
+      toonTaxi();
+      toonDialyse();
+      laadFeitenEnBeheer();
+    })
+    .withFailureHandler(fout)
+    .getOverzicht();
+}
+
+/* --- DASHBOARD & VOCHT LOGICA --- */
+function verwerkDashboardEnVocht() {
+  const data = alleData.vocht || [];
+  const vasteFeiten = alleData.vasteFeiten || [];
+  
+  const drankSelect = document.getElementById("vochtSoort");
+  const huidigeSelectie = drankSelect.value;
+  let drankHtml = "";
+  vasteFeiten.filter(r => String(r["Instelling"] || "").toLowerCase() === "drank").forEach(r => {
+    const drankNaam = r["Waarde"];
+    drankHtml += `<option value="${escapeHtml(drankNaam)}">${escapeHtml(drankNaam)}</option>`;
+  });
+  drankSelect.innerHTML = drankHtml;
+  if (huidigeSelectie) drankSelect.value = huidigeSelectie;
+
+  const d = new Date();
+  const hDag = String(d.getDate()).padStart(2, '0');
+  const hMaand = String(d.getMonth() + 1).padStart(2, '0');
+  const hJaar = d.getFullYear();
+  const vandaagFormaat = `${hDag}-${hMaand}-${hJaar}`;
+
+  let totaal = 0;
+  const vandaagData = data.filter(row => String(row["Datum/tijd"] || "").startsWith(vandaagFormaat));
+  vandaagData.forEach(row => totaal += Number(row["Hoeveelheid ml"]) || 0);
+
+  let limiet = 1000;
+  const feit = vasteFeiten.find(row => String(row["Instelling"] || "").toLowerCase() === "vochtlimiet");
+  if (feit) limiet = Number(feit["Waarde"]) || 1000;
+
+  const dwFeit = vasteFeiten.find(row => String(row["Instelling"] || "").toLowerCase() === "drooggewicht");
+  if (dwFeit) {
+    globaalDroogGewicht = parseFloat(dwFeit["Waarde"]) || 109;
+    document.getElementById("droogGewichtInstelling").value = globaalDroogGewicht;
+  }
+
+  document.getElementById("dashVochtTotaal").textContent = totaal;
+  document.getElementById("dashVochtLimiet").textContent = limiet;
+  
+  const percentage = Math.min(100, Math.round((totaal / limiet) * 100));
+  const vullingBar = document.getElementById("mensVullingBar");
+  vullingBar.style.height = percentage + "%";
+  const hue = Math.max(0, 120 - (percentage * 1.2));
+  vullingBar.style.backgroundColor = `hsl(${hue}, 80%, 45%)`;
+
+  let html = "";
+  if (vandaagData.length === 0) {
+    html = "<p>Nog geen vocht geregistreerd vandaag.</p>";
+  } else {
+    vandaagData.slice().reverse().forEach(row => {
+      html += `<div class='item-kaart'><b>${escapeHtml(row["Datum/tijd"])}</b><br>`;
+      html += `<b>${escapeHtml(row["Soort"])}</b> — ${escapeHtml(row["Hoeveelheid ml"])} ml`;
+      if (row["Opmerking"]) html += `<br><span class="small">${escapeHtml(row["Opmerking"])}</span>`;
+      if (huidigeRol === "admin") {
+        html += `<div class='acties'>`;
+        html += `<button class='bewerk' onclick="bewerkVocht('${row["_ID"]}')">✏️ Bewerken</button>`;
+        html += `<button class='gevaar' onclick="verwijderRecord('Vocht', '${row["_ID"]}')">🗑 Verwijderen</button>`;
+        html += `</div>`;
+      }
+      html += `</div>`;
+    });
+  }
+  document.getElementById("vochtLijst").innerHTML = html;
+
+  toonDashboardTaxi(vandaagFormaat);
+  toonDashboardDialyse(vandaagFormaat, d);
+}
+
+function toonDashboardTaxi(vandaagFormaat) {
+  const taxiData = alleData.taxi || [];
+  const vandaagTaxi = taxiData.filter(row => String(row["Afspraak datum/tijd"] || "").startsWith(vandaagFormaat));
+  let html = "";
+  if (vandaagTaxi.length === 0) {
+    html = "<p>Geen taxiritten gepland voor vandaag.</p>";
+  } else {
+    vandaagTaxi.forEach(row => {
+      let dt = escapeHtml(row["Afspraak datum/tijd"]);
+      let tijdStr = dt.includes(" ") ? dt.split(" ")[1] : dt;
+      let klikAttr = huidigeRol === "admin" ? `class='item-kaart klikbaar' onclick="bewerkTaxi('${row["_ID"]}')"` : `class='item-kaart'`;
+      html += `<div ${klikAttr}>`;
+      html += `<b>⏰ ${tijdStr} — 📍 ${escapeHtml(row["Bestemming"])}</b>`;
+      if (row["Taxibedrijf"]) html += `<br><b>Bedrijf:</b> ${escapeHtml(row["Taxibedrijf"])}`;
+      html += `<br><b>Status:</b> ${escapeHtml(row["Status"] || "Leeg")}</div>`;
+    });
+  }
+  document.getElementById("dashTaxiLijst").innerHTML = html;
+}
+
+function toonDashboardDialyse(vandaagFormaat, vandaagDateObj) {
+  const dialyseData = alleData.dialyse || [];
+  
+  const gisterenDate = new Date(vandaagDateObj);
+  gisterenDate.setDate(vandaagDateObj.getDate() - 1);
+  const gDag = String(gisterenDate.getDate()).padStart(2, '0');
+  const gMaand = String(gisterenDate.getMonth() + 1).padStart(2, '0');
+  const gJaar = gisterenDate.getFullYear();
+  const gisterenFormaat = `${gDag}-${gMaand}-${gJaar}`;
+
+  const vandaagDialyse = dialyseData.filter(row => {
+    const afspraakDt = String(row["Afspraak Datum/tijd"] || "");
+    const type = String(row["Type"] || "Dag");
+
+    if (afspraakDt.startsWith(vandaagFormaat)) {
+      return true;
+    }
+
+    if (type === "Nacht" && afspraakDt.startsWith(gisterenFormaat)) {
+      let afspraakMs = parseDatumTijdVoorSorteer(afspraakDt);
+      let stopMs = parseDatumTijdVoorSorteer(row["Stop Datum/tijd"]);
+      
+      let vandaagTwaalfUurMs = new Date(vandaagDateObj.getFullYear(), vandaagDateObj.getMonth(), vandaagDateObj.getDate(), 12, 0, 0).getTime();
+      let vandaagNachtMiddernachtMs = new Date(vandaagDateObj.getFullYear(), vandaagDateObj.getMonth(), vandaagDateObj.getDate(), 0, 0, 0).getTime();
+
+      if (stopMs > vandaagNachtMiddernachtMs && afspraakMs < vandaagTwaalfUurMs) {
+        return true;
+      }
+    }
+    return false;
+  });
+
+  let html = "";
+  if (vandaagDialyse.length === 0) {
+    html = "<p>Geen dialyse sessie vandaag.</p>";
+  } else {
+    vandaagDialyse.forEach(row => {
+      let pre = parseFloat(row["Pre-gewicht kg"]) || 0;
+      let post = parseFloat(row["Post-gewicht kg"]) || 0;
+      let werkelijkUf = (pre > 0 && post > 0) ? (pre - post).toFixed(1) : "-";
+
+      let klikAttr = huidigeRol === "admin" ? `class='item-kaart klikbaar' onclick="bewerkDialyse('${row["_ID"]}')"` : `class='item-kaart'`;
+      html += `<div ${klikAttr}>`;
+      html += `<b>🩺 Type: ${escapeHtml(row["Type"] || "Dag")} | Status: ${escapeHtml(row["Status"] || "Open")}</b><br>`;
+      html += `Afspraak: ${escapeHtml(row["Afspraak Datum/tijd"] || '-')}<br>`;
+      html += `Pre: ${pre || '-'} kg | Post: ${post || '-'} kg<br>`;
+      html += `Advies UF: ${row["UF L"] || '-'} L | <b>Werkelijke UF: ${werkelijkUf} kg/L</b></div>`;
+    });
+  }
+  document.getElementById("dashDialyseLijst").innerHTML = html;
+}
+
+function slaVochtOp() {
+  if (huidigeRol === "kijker") return;
+  const data = {
+    "Datum/tijd": document.getElementById("vochtDatumTijd").value,
+    "Soort": document.getElementById("vochtSoort").value,
+    "Hoeveelheid ml": document.getElementById("vochtHoeveelheid").value,
+    "Opmerking": document.getElementById("vochtOpmerking").value
+  };
+  if (!data["Hoeveelheid ml"]) { melding("Vul een hoeveelheid in."); return; }
+
+  const klaar = () => {
+    melding(editVochtId ? "Vocht gewijzigd." : "Vocht opgeslagen.");
+    annuleerVocht();
+    laadAlles();
+  };
+
+  if (editVochtId) {
+    google.script.run.withSuccessHandler(klaar).withFailureHandler(fout).updateRecord("Vocht", editVochtId, data);
+  } else {
+    google.script.run.withSuccessHandler(klaar).withFailureHandler(fout).addRecord("Vocht", data);
+  }
+}
+
+function annuleerVocht() {
+  editVochtId = null;
+  document.getElementById("vochtHoeveelheid").value = "";
+  document.getElementById("vochtOpmerking").value = "";
+  document.getElementById("vochtOpslaan").textContent = "Vocht opslaan";
+  document.getElementById("vochtAnnuleer").classList.add("hidden");
+  initFormulieren();
+}
+
+function bewerkVocht(id) {
+  if (huidigeRol === "kijker") return;
+  const data = (alleData.vocht || []).find(r => String(r["_ID"]) === String(id));
+  if (!data) return;
+  editVochtId = id;
+  let dt = String(data["Datum/tijd"] || "");
+  if (dt.includes("-")) {
+    const delen = dt.split(" ");
+    if (delen.length === 2) {
+      const datumDelen = delen[0].split("-");
+      if (datumDelen.length === 3) {
+        dt = `${datumDelen[2]}-${datumDelen[1]}-${datumDelen[0]}T${delen[1]}`;
+      }
+    }
+  }
+  document.getElementById("vochtDatumTijd").value = dt;
+  document.getElementById("vochtSoort").value = data["Soort"] || "";
+  document.getElementById("vochtHoeveelheid").value = data["Hoeveelheid ml"] || "";
+  document.getElementById("vochtOpmerking").value = data["Opmerking"] || "";
+  document.getElementById("vochtOpslaan").textContent = "Wijziging opslaan";
+  document.getElementById("vochtAnnuleer").classList.remove("hidden");
+  toonPagina('vocht');
+}
+
+/* --- TAXI LOGICA --- */
+function slaTaxiOp() {
+  if (huidigeRol === "kijker") return;
+  bepaalAutomatischeStatusTaxi();
+  const data = {
+    "Afspraak datum/tijd": document.getElementById("taxiDatumTijd").value,
+    "Bestemming": document.getElementById("taxiBestemmingSelect").value,
+    "Taxibedrijf": document.getElementById("taxiBedrijfSelect").value,
+    "Start": document.getElementById("taxiStart").value,
+    "Stop": document.getElementById("taxiStop").value,
+    "Status": document.getElementById("taxiStatus").value,
+    "Herhaling": document.getElementById("taxiHerhaling").value,
+    "Einddatum herhaling": document.getElementById("taxiEinddatum").value,
+    "Opmerking": document.getElementById("taxiOpmerking").value
+  };
+  if (!data["Bestemming"]) { melding("Selecteer een bestemming."); return; }
+
+  const klaar = () => {
+    melding(editTaxiId ? "Taxi planning gewijzigd." : "Taxi planning opgeslagen.");
+    annuleerTaxi();
+    laadAlles();
+  };
+
+  if (editTaxiId) {
+    google.script.run.withSuccessHandler(klaar).withFailureHandler(fout).updateRecord("Taxi", editTaxiId, data);
+  } else {
+    google.script.run.withSuccessHandler(klaar).withFailureHandler(fout).addPlanningMetHerhaling("Taxi", data, "Afspraak datum/tijd");
+  }
+}
+
+function annuleerTaxi() {
+  editTaxiId = null;
+  document.getElementById("taxiStart").value = "";
+  document.getElementById("taxiStop").value = "";
+  document.getElementById("taxiHerhaling").value = "Eenmalig op datum";
+  document.getElementById("taxiEinddatumContainer").classList.add("hidden");
+  document.getElementById("taxiOpmerking").value = "";
+  document.getElementById("taxiOpslaan").textContent = "Taxi planning opslaan";
+  document.getElementById("taxiAnnuleer").classList.add("hidden");
+  initFormulieren();
+}
+
+function parseDatumTijdVoorSorteer(str) {
+  if (!str) return 0;
+  let delen = str.split(" ");
+  if (delen.length >= 2) {
+    let datumDelen = delen[0].split("-");
+    let tijdDelen = delen[1].split(":");
+    if (datumDelen.length === 3 && tijdDelen.length >= 2) {
+      return new Date(datumDelen[2], datumDelen[1] - 1, datumDelen[0], tijdDelen[0], tijdDelen[1]).getTime();
+    }
+  }
+  return new Date(str).getTime() || 0;
+}
+
+function toonTaxi() {
+  const data = [...(alleData.taxi || [])];
+  const vasteFeiten = alleData.vasteFeiten || [];
+  data.sort((a, b) => parseDatumTijdVoorSorteer(a["Afspraak datum/tijd"]) - parseDatumTijdVoorSorteer(b["Afspraak datum/tijd"]));
+
+  const bestSelect = document.getElementById("taxiBestemmingSelect");
+  const huidigeBestemming = bestSelect.value;
+  let bestHtml = "";
+  vasteFeiten.filter(r => String(r["Instelling"] || "").toLowerCase() === "bestemming").forEach(r => {
+    bestHtml += `<option value="${escapeHtml(r["Waarde"])}">${escapeHtml(r["Waarde"])}</option>`;
+  });
+  bestSelect.innerHTML = bestHtml;
+  if (huidigeBestemming) bestSelect.value = huidigeBestemming;
+
+  const bedrijfSelect = document.getElementById("taxiBedrijfSelect");
+  const huidigBedrijf = bedrijfSelect.value;
+  let bedrijfHtml = "";
+  vasteFeiten.filter(r => String(r["Instelling"] || "").toLowerCase() === "taxibedrijf").forEach(r => {
+    bedrijfHtml += `<option value="${escapeHtml(r["Waarde"])}">${escapeHtml(r["Waarde"])}</option>`;
+  });
+  bedrijfSelect.innerHTML = bedrijfHtml;
+  if (huidigBedrijf) bedrijfSelect.value = huidigBedrijf;
+
+  let html = "";
+  if (data.length === 0) {
+    html = "<p>Geen geplande taxiritten.</p>";
+  } else {
+    data.forEach(row => {
+      html += `<div class='item-kaart'><b>📅 ${escapeHtml(row["Afspraak datum/tijd"])}</b><br>`;
+      html += `<b>📍 Bestemming:</b> ${escapeHtml(row["Bestemming"])}<br>`;
+      if (row["Taxibedrijf"]) html += `<b>Bedrijf:</b> ${escapeHtml(row["Taxibedrijf"])}<br>`;
+      if (row["Start"]) html += `<b>Start:</b> ${escapeHtml(row["Start"])} `;
+      if (row["Stop"]) html += `| <b>Stop:</b> ${escapeHtml(row["Stop"])}<br>`;
+      html += `<b>Status:</b> ${escapeHtml(row["Status"] || "Leeg")}`;
+      if (row["Opmerking"]) html += `<br><span class="small">${escapeHtml(row["Opmerking"])}</span>`;
+      if (huidigeRol === "admin") {
+        html += `<div class='acties'>`;
+        html += `<button class='bewerk' onclick="bewerkTaxi('${row["_ID"]}')">✏️ Bewerken</button>`;
+        html += `<button class='gevaar' onclick="verwijderRecord('Taxi', '${row["_ID"]}')">🗑 Verwijderen</button>`;
+        html += `</div>`;
+      }
+      html += `</div>`;
+    });
+  }
+  document.getElementById("taxiLijst").innerHTML = html;
+}
+
+function bewerkTaxi(id) {
+  if (huidigeRol === "kijker") return;
+  const data = (alleData.taxi || []).find(r => String(r["_ID"]) === String(id));
+  if (!data) return;
+  editTaxiId = id;
+  let dt = String(data["Afspraak datum/tijd"] || "");
+  if (dt.includes("-")) {
+    const delen = dt.split(" ");
+    if (delen.length === 2) {
+      const datumDelen = delen[0].split("-");
+      if (datumDelen.length === 3) {
+        dt = `${datumDelen[2]}-${datumDelen[1]}-${datumDelen[0]}T${delen[1]}`;
+      }
+    }
+  }
+  document.getElementById("taxiDatumTijd").value = dt;
+  document.getElementById("taxiBestemmingSelect").value = data["Bestemming"] || "";
+  document.getElementById("taxiBedrijfSelect").value = data["Taxibedrijf"] || "";
+  document.getElementById("taxiStart").value = data["Start"] || "";
+  document.getElementById("taxiStop").value = data["Stop"] || "";
+  document.getElementById("taxiHerhaling").value = data["Herhaling"] || "Eenmalig op datum";
+  toggleEinddatum('taxi');
+  document.getElementById("taxiEinddatum").value = data["Einddatum herhaling"] || "";
+  document.getElementById("taxiOpmerking").value = data["Opmerking"] || "";
+  bepaalAutomatischeStatusTaxi();
+  document.getElementById("taxiOpslaan").textContent = "Wijziging opslaan";
+  document.getElementById("taxiAnnuleer").classList.remove("hidden");
+  toonPagina('taxi');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* --- DIALYSE LOGICA --- */
+function slaDialyseOp() {
+  if (huidigeRol === "kijker") return;
+  const preGewicht = parseFloat(document.getElementById("dialysePreGewicht").value) || 0;
+  const type = document.getElementById("dialyseType").value;
+  const factor = (type === "Dag") ? 0.6 : 0.3;
+  let uf = preGewicht > 0 ? (preGewicht - globaalDroogGewicht + factor) : 0;
+  if (uf < 0) uf = 0;
+
+  const data = {
+    "Afspraak Datum/tijd": document.getElementById("dialyseAfspraakTijd").value,
+    "Start Datum/tijd": document.getElementById("dialyseStartTijd").value,
+    "Stop Datum/tijd": document.getElementById("dialyseStopTijd").value,
+    "Type": type,
+    "Status": document.getElementById("dialyseStatus").value,
+    "Pre-gewicht kg": preGewicht,
+    "Post-gewicht kg": document.getElementById("dialysePostGewicht").value,
+    "UF L": uf.toFixed(1),
+    "Bloeddruk metingen": verzamelMetingen(),
+    "Opmerking": document.getElementById("dialyseOpmerking").value,
+    "Herhaling": document.getElementById("dialyseHerhaling").value,
+    "Einddatum herhaling": document.getElementById("dialyseEinddatum").value
+  };
+
+  const klaar = () => {
+    melding(editDialyseId ? "Dialyse planning gewijzigd." : "Dialyse planning opgeslagen.");
+    annuleerDialyse();
+    laadAlles();
+  };
+
+  if (editDialyseId) {
+    google.script.run.withSuccessHandler(klaar).withFailureHandler(fout).updateRecord("Dialyse", editDialyseId, data);
+  } else {
+    google.script.run.withSuccessHandler(klaar).withFailureHandler(fout).addPlanningMetHerhaling("Dialyse", data, "Start Datum/tijd");
+  }
+}
+
+function annuleerDialyse() {
+  editDialyseId = null;
+  document.getElementById("dialysePreGewicht").value = "";
+  document.getElementById("dialysePostGewicht").value = "";
+  document.getElementById("dialyseOpmerking").value = "";
+  document.getElementById("dialyseStatus").value = "Open";
+  document.getElementById("dialyseHerhaling").value = "Eenmalig op datum";
+  document.getElementById("dialyseEinddatumContainer").classList.add("hidden");
+  if (dialyseTimerInterval) {
+    clearInterval(dialyseTimerInterval);
+    dialyseTimerInterval = null;
+  }
+  document.getElementById("dialyseTimerBox").classList.add("hidden");
+  document.getElementById("metingenContainer").innerHTML = "";
+  voegMetingRijtoe();
+  document.getElementById("dialyseOpslaan").textContent = "Dialyse planning opslaan";
+  document.getElementById("dialyseAnnuleer").classList.add("hidden");
+  initFormulieren();
+}
+
+function toonDialyse() {
+  const data = [...(alleData.dialyse || [])];
+  data.sort((a, b) => parseDatumTijdVoorSorteer(a["Start Datum/tijd"]) - parseDatumTijdVoorSorteer(b["Start Datum/tijd"]));
+  
+  let html = "";
+  if (data.length === 0) {
+    html = "<p>Geen dialyse sessies of planningen geregistreerd.</p>";
+  } else {
+    data.forEach(row => {
+      let pre = parseFloat(row["Pre-gewicht kg"]) || 0;
+      let post = parseFloat(row["Post-gewicht kg"]) || 0;
+      let werkelijkUf = (pre > 0 && post > 0) ? (pre - post).toFixed(1) : "-";
+
+      let ufWaarde = Number(row["UF L"]) || 0;
+      let badgeClass = "badge-groen";
+      let badgeText = "Groen (< 4.0 L)";
+      if (ufWaarde >= 4.5) {
+        badgeClass = "badge-rood";
+        badgeText = "Rood (>= 4.5 L)";
+      } else if (ufWaarde >= 4.0) {
+        badgeClass = "badge-oranje";
+        badgeText = "Oranje (>= 4.0 L)";
+      }
+
+      html += `<div class='item-kaart'><b>🩺 ${escapeHtml(row["Type"] || "Dag")} — Status: ${escapeHtml(row["Status"] || "Open")}</b><br>`;
+      if (row["Afspraak Datum/tijd"]) html += `<b>Afspraak:</b> ${escapeHtml(row["Afspraak Datum/tijd"])}<br>`;
+      html += `<b>Start:</b> ${escapeHtml(row["Start Datum/tijd"] || '-')}<br>`;
+      html += `<b>Stop:</b> ${escapeHtml(row["Stop Datum/tijd"] || '-')}<br>`;
+      html += `<b>Pre:</b> ${pre || '-'} kg | <b>Post:</b> ${post || '-'} kg<br>`;
+      html += `<b>Advies UF:</b> ${row["UF L"] || '0'} L <span class="${badgeClass}" style="font-size: 11px; padding: 1px 5px;">${badgeText}</span><br>`;
+      html += `<b>Werkelijke UF (Pre - Post):</b> <b>${werkelijkUf} kg</b><br>`;
+      if (row["Bloeddruk metingen"]) html += `<b>Metingen (BP/Pols):</b> ${escapeHtml(row["Bloeddruk metingen"])}<br>`;
+      if (row["Opmerking"]) html += `<span class="small">${escapeHtml(row["Opmerking"])}</span>`;
+      if (huidigeRol === "admin") {
+        html += `<div class='acties'>`;
+        html += `<button class='bewerk' onclick="bewerkDialyse('${row["_ID"]}')">✏️ Bewerken</button>`;
+        html += `<button class='gevaar' onclick="verwijderRecord('Dialyse', '${row["_ID"]}')">🗑 Verwijderen</button>`;
+        html += `</div>`;
+      }
+      html += `</div>`;
+    });
+  }
+  document.getElementById("dialyseLijst").innerHTML = html;
+}
+
+function bewerkDialyse(id) {
+  if (huidigeRol === "kijker") return;
+  const data = (alleData.dialyse || []).find(r => String(r["_ID"]) === String(id));
+  if (!data) return;
+  editDialyseId = id;
+
+  function conversieDT(dtStr) {
+    if (!dtStr) return "";
+    let dt = String(dtStr);
+    if (dt.includes("T") && dt.length >= 16) return dt.substring(0, 16);
+    if (dt.includes("-")) {
+      const delen = dt.split(" ");
+      if (delen.length >= 1) {
+        const datumDelen = delen[0].split("-");
+        if (datumDelen.length === 3 && datumDelen[0].length === 2) {
+          const tijdDeel = delen[1] ? delen[1].substring(0, 5) : "00:00";
+          return `${datumDelen[2]}-${datumDelen[1]}-${datumDelen[0]}T${tijdDeel}`;
+        }
+      }
+    }
+    const d = new Date(dt);
+    if (!isNaN(d.getTime()) && d.getFullYear() > 2000) {
+      const jaar = d.getFullYear();
+      const maand = String(d.getMonth() + 1).padStart(2, '0');
+      const dag = String(d.getDate()).padStart(2, '0');
+      const uur = String(d.getHours()).padStart(2, '0');
+      const minuut = String(d.getMinutes()).padStart(2, '0');
+      return `${jaar}-${maand}-${dag}T${uur}:${minuut}`;
+    }
+    return "";
+  }
+
+  document.getElementById("dialyseType").value = data["Type"] || "Dag";
+  document.getElementById("dialyseAfspraakTijd").value = conversieDT(data["Afspraak Datum/tijd"]);
+  document.getElementById("dialyseStartTijd").value = conversieDT(data["Start Datum/tijd"]);
+  document.getElementById("dialyseStopTijd").value = conversieDT(data["Stop Datum/tijd"]);
+  document.getElementById("dialyseStatus").value = data["Status"] || "Open";
+  document.getElementById("dialyseHerhaling").value = data["Herhaling"] || "Eenmalig op datum";
+  toggleEinddatum('dialyse');
+  document.getElementById("dialyseEinddatum").value = data["Einddatum herhaling"] || "";
+  document.getElementById("dialysePreGewicht").value = data["Pre-gewicht kg"] || "";
+  document.getElementById("dialysePostGewicht").value = data["Post-gewicht kg"] || "";
+  document.getElementById("dialyseOpmerking").value = data["Opmerking"] || "";
+
+  const container = document.getElementById("metingenContainer");
+  container.innerHTML = "";
+  const metingenStr = data["Bloeddruk metingen"] || "";
+  if (metingenStr) {
+    const delen = metingenStr.split(" | ");
+    delen.forEach(deel => {
+      let sys = "", dia = "", hr = "";
+      let match = deel.match(/(\d+)\/(\d+),\s*(\d+)/);
+      if (match) {
+        sys = match[1];
+        dia = match[2];
+        hr = match[3];
+      }
+      voegMetingRijtoe(sys, dia, hr);
+    });
+  }
+  if (container.children.length === 0) {
+    voegMetingRijtoe();
+  }
+
+  berekenUfAdvies();
+  updateDubbeleKlok();
+  document.getElementById("dialyseOpslaan").textContent = "Wijziging opslaan";
+  document.getElementById("dialyseAnnuleer").classList.remove("hidden");
+  toonPagina('dialyse');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* --- RAPPORTAGE & GRAFIEK LOGICA --- */
+function genereerRapport() {
+  const periode = document.getElementById("rapportPeriode").value;
+  let startMs = 0;
+  let eindMs = Number.MAX_SAFE_INTEGER;
+
+  const nu = new Date();
+  if (periode === "vandaag") {
+    let vandaagStart = new Date(nu.getFullYear(), nu.getMonth(), nu.getDate()).getTime();
+    startMs = vandaagStart;
+    eindMs = vandaagStart + 86400000;
+  } else if (periode === "week") {
+    let dagVanWeek = nu.getDay() === 0 ? 6 : nu.getDay() - 1;
+    let maandag = new Date(nu);
+    maandag.setDate(nu.getDate() - dagVanWeek);
+    maandag.setHours(0,0,0,0);
+    startMs = maandag.getTime();
+    eindMs = startMs + (7 * 86400000);
+  } else if (periode === "maand") {
+    let eersteDag = new Date(nu.getFullYear(), nu.getMonth(), 1).getTime();
+    let laatsteDag = new Date(nu.getFullYear(), nu.getMonth() + 1, 1).getTime();
+    startMs = eersteDag;
+    eindMs = laatsteDag;
+  } else if (periode === "aangepast") {
+    let startVal = document.getElementById("rapportStartDatum").value;
+    let eindVal = document.getElementById("rapportEindDatum").value;
+    if (startVal) startMs = new Date(startVal).getTime();
+    if (eindVal) {
+      let d = new Date(eindVal);
+      d.setDate(d.getDate() + 1);
+      eindMs = d.getTime();
+    }
+  }
+
+  document.getElementById("rapportResultaatContainer").classList.remove("hidden");
+
+  const vochtData = (alleData.vocht || []).filter(row => {
+    let ms = parseDatumTijdVoorSorteer(row["Datum/tijd"]);
+    return ms >= startMs && ms < eindMs;
+  });
+
+  const taxiData = (alleData.taxi || []).filter(row => {
+    let ms = parseDatumTijdVoorSorteer(row["Afspraak datum/tijd"]);
+    return ms >= startMs && ms < eindMs;
+  });
+
+  const dialyseData = (alleData.dialyse || []).filter(row => {
+    let ms = parseDatumTijdVoorSorteer(row["Start Datum/tijd"]);
+    return ms >= startMs && ms < eindMs;
+  });
+
+  let vochtLimiet = 1000;
+  let vochtFeit = (alleData.vasteFeiten || []).find(r => String(r["Instelling"] || "").toLowerCase() === "vochtlimiet");
+  if (vochtFeit) vochtLimiet = Number(vochtFeit["Waarde"]) || 1000;
+
+  let vochtPerDag = {};
+  vochtData.forEach(row => {
+    let dagStr = String(row["Datum/tijd"] || "").split(" ")[0];
+    if (!dagStr) dagStr = "Onbekend";
+    vochtPerDag[dagStr] = (vochtPerDag[dagStr] || 0) + (Number(row["Hoeveelheid ml"]) || 0);
+  });
+
+  let vochtGrafiekHtml = "";
+  let maxVocht = Math.max(vochtLimiet, ...Object.values(vochtPerDag), 1000);
+  Object.keys(vochtPerDag).sort().forEach(dag => {
+    let val = vochtPerDag[dag];
+    let pct = Math.min(100, Math.round((val / maxVocht) * 100));
+    let kleur = val > vochtLimiet ? "#dc2626" : "#2563eb";
+    vochtGrafiekHtml += `
+      <div class="grafiek-balk-rij">
+        <div class="grafiek-label">${dag}</div>
+        <div class="grafiek-balk-bg"><div class="grafiek-balk-fill" style="width: ${pct}%; background: ${kleur};"></div></div>
+        <div class="grafiek-waarde">${val} ml</div>
+      </div>`;
+  });
+  document.getElementById("rapportVochtGrafiek").innerHTML = vochtGrafiekHtml || "<p>Geen vochtgegevens in deze periode.</p>";
+
+  let vochtLijstHtml = "<h4>Details Vochtinname:</h4>";
+  if (vochtData.length === 0) vochtLijstHtml += "<p>Geen registraties.</p>";
+  vochtData.forEach(r => {
+    vochtLijstHtml += `<div class='item-kaart'><b>${escapeHtml(r["Datum/tijd"])}</b> — <b>${escapeHtml(r["Soort"])}</b>: ${escapeHtml(r["Hoeveelheid ml"])} ml`;
+    if (r["Opmerking"]) vochtLijstHtml += `<br><span class="small">${escapeHtml(r["Opmerking"])}</span>`;
+    vochtLijstHtml += `</div>`;
+  });
+  document.getElementById("rapportVochtLijst").innerHTML = vochtLijstHtml;
+
+  let taxiLijstHtml = "";
+  if (taxiData.length === 0) {
+    taxiLijstHtml = "<p>Geen taxiritten in deze periode.</p>";
+  } else {
+    taxiData.forEach(r => {
+      taxiLijstHtml += `<div class='item-kaart'><b>📅 ${escapeHtml(r["Afspraak datum/tijd"])}</b><br>`;
+      taxiLijstHtml += `<b>Bestemming:</b> ${escapeHtml(r["Bestemming"])} | <b>Bedrijf:</b> ${escapeHtml(r["Taxibedrijf"] || '-')}<br>`;
+      taxiLijstHtml += `<b>Start/Stop:</b> ${escapeHtml(r["Start"] || '-')} / ${escapeHtml(r["Stop"] || '-')} | <b>Status:</b> ${escapeHtml(r["Status"] || '-')}`;
+      if (r["Opmerking"]) taxiLijstHtml += `<br><span class="small">${escapeHtml(r["Opmerking"])}</span>`;
+      taxiLijstHtml += `</div>`;
+    });
+  }
+  document.getElementById("rapportTaxiLijst").innerHTML = taxiLijstHtml;
+
+  let dialyseGrafiekHtml = "";
+  let maxUf = 6;
+  dialyseData.forEach(r => {
+    let dagStr = String(r["Start Datum/tijd"] || "").split(" ")[0] || "Onbekend";
+    let ufVal = Number(r["UF L"]) || 0;
+    let pct = Math.min(100, Math.round((ufVal / maxUf) * 100));
+    let badgeKleur = "#22c55e";
+    if (ufVal >= 4.5) badgeKleur = "#dc2626";
+    else if (ufVal >= 4.0) badgeKleur = "#f97316";
+
+    dialyseGrafiekHtml += `
+      <div class="grafiek-balk-rij">
+        <div class="grafiek-label">${dagStr}</div>
+        <div class="grafiek-balk-bg"><div class="grafiek-balk-fill" style="width: ${pct}%; background: ${badgeKleur};"></div></div>
+        <div class="grafiek-waarde">${ufVal.toFixed(1)} L</div>
+      </div>`;
+  });
+  document.getElementById("rapportDialyseGrafiek").innerHTML = dialyseGrafiekHtml || "<p>Geen dialysemetingen in deze periode.</p>";
+
+  let dialyseLijstHtml = "<h4>Details Dialyse & Metingen:</h4>";
+  if (dialyseData.length === 0) dialyseLijstHtml += "<p>Geen dialysesessies.</p>";
+  dialyseData.forEach(r => {
+    let pre = parseFloat(r["Pre-gewicht kg"]) || 0;
+    let post = parseFloat(r["Post-gewicht kg"]) || 0;
+    let werkelijkUf = (pre > 0 && post > 0) ? (pre - post).toFixed(1) : "-";
+
+    dialyseLijstHtml += `<div class='item-kaart'><b>🩺 ${escapeHtml(r["Type"] || "Dag")} — Start: ${escapeHtml(r["Start Datum/tijd"] || '-')}</b><br>`;
+    dialyseLijstHtml += `Pre: ${pre || '-'} kg | Post: ${post || '-'} kg | Advies UF: ${r["UF L"] || '0'} L<br>`;
+    dialyseLijstHtml += `<b>Werkelijke UF (Pre - Post):</b> <b>${werkelijkUf} kg</b><br>`;
+    if (r["Bloeddruk metingen"]) dialyseLijstHtml += `<b>Metingen:</b> ${escapeHtml(r["Bloeddruk metingen"])}<br>`;
+    if (r["Opmerking"]) dialyseLijstHtml += `<span class="small">${escapeHtml(r["Opmerking"])}</span>`;
+    dialyseLijstHtml += `</div>`;
+  });
+  document.getElementById("rapportDialyseLijst").innerHTML = dialyseLijstHtml;
+}
+
+/* --- ALGEMEEN / FEITEN & BEHEER --- */
+function verwijderRecord(sheetNaam, id) {
+  if (huidigeRol === "kijker") return;
+  if (!confirm("Weet je zeker dat je dit wilt verwijderen?")) return;
+  google.script.run
+    .withSuccessHandler(() => { melding("Verwijderd."); laadAlles(); })
+    .withFailureHandler(fout)
+    .deleteRecord(sheetNaam, id);
+}
+
+function laadFeitenEnBeheer() {
+  const vasteFeiten = alleData.vasteFeiten || [];
+  const feit = vasteFeiten.find(row => String(row["Instelling"] || "").toLowerCase() === "vochtlimiet");
+  if (feit) document.getElementById("limietInput").value = feit["Waarde"];
+
+  const dwFeit = vasteFeiten.find(row => String(row["Instelling"] || "").toLowerCase() === "drooggewicht");
+  if (dwFeit) {
+    globaalDroogGewicht = parseFloat(dwFeit["Waarde"]) || 109;
+    document.getElementById("droogGewichtInstelling").value = globaalDroogGewicht;
+  }
+
+  vulBeheerLijst("drankenLijst", "drank");
+  vulBeheerLijst("bedrijvenLijst", "taxibedrijf");
+  vulBeheerLijst("bestemmingenLijst", "bestemming");
+}
+
+function vulBeheerLijst(elementId, instellingNaam) {
+  const vasteFeiten = alleData.vasteFeiten || [];
+  let html = "";
+  const items = vasteFeiten.filter(row => String(row["Instelling"] || "").toLowerCase() === instellingNaam);
+  if (items.length === 0) {
+    html = `<p>Geen ${instellingNaam}en ingesteld.</p>`;
+  } else {
+    items.forEach(row => {
+      html += `<div class='kaart'><span><b>${escapeHtml(row["Waarde"])}</b></span>`;
+      if (huidigeRol === "admin") {
+        html += `<button class='gevaar' onclick="verwijderRecord('Vaste feiten', '${row["_ID"]}')">Verwijderen</button>`;
+      }
+      html += `</div>`;
+    });
+  }
+  document.getElementById(elementId).innerHTML = html;
+}
+
+function slaLimietOp() {
+  if (huidigeRol === "kijker") return;
+  const waarde = document.getElementById("limietInput").value;
+  google.script.run
+    .withSuccessHandler(() => { melding("Limiet opgeslagen."); laadAlles(); })
+    .withFailureHandler(fout)
+    .addRecord("Vaste feiten", { "Instelling": "Vochtlimiet", "Waarde": waarde, "Eenheid": "ml" });
+}
+
+function slaDroogGewichtOp() {
+  if (huidigeRol === "kijker") return;
+  const waarde = document.getElementById("droogGewichtInstelling").value;
+  if (!waarde) { melding("Vul een geldig drooggewicht in."); return; }
+  google.script.run
+    .withSuccessHandler(() => { 
+      globaalDroogGewicht = parseFloat(waarde);
+      melding("Drooggewicht opgeslagen."); 
+      laadAlles(); 
+    })
+    .withFailureHandler(fout)
+    .addRecord("Vaste feiten", { "Instelling": "Drooggewicht", "Waarde": waarde, "Eenheid": "kg" });
+}
+
+function voegFeitToe(instellingNaam, inputId, succesMelding) {
+  if (huidigeRol === "kijker") return;
+  const waarde = document.getElementById(inputId).value.trim();
+  if (!waarde) { melding("Vul een waarde in."); return; }
+  google.script.run
+    .withSuccessHandler(() => {
+      document.getElementById(inputId).value = "";
+      melding(succesMelding);
+      laadAlles();
+    })
+    .withFailureHandler(fout)
+    .addRecord("Vaste feiten", { "Instelling": instellingNaam, "Waarde": waarde, "Eenheid": "" });
+}
+
+function escapeHtml(tekst) {
+  return String(tekst ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+}
+</script>
+</body>
+</html>
